@@ -69,7 +69,7 @@ El integrago 74HC595 hace parte de la familia de dispositivos SNx4HC59, la cual 
 \includegraphics[scale=1]{esquematico.png}
 \centering
 \caption{Integrado 74HC595.}
-\label{fig:func1}
+\label{fig:int74HC959}
 \end{figure}
 
 \textbf{Configuración de pines.}
@@ -88,16 +88,78 @@ El integrago 74HC595 hace parte de la familia de dispositivos SNx4HC59, la cual 
 \end{itemize}
 
 \subsection{Funcionamiento.}\label{integrado funcionamiento}
+El objetivo principal es pasar el número dado de un formato serial a uno parelelo. Para explicar el funcionamiento del integrado tomaremos un número cualquiera de 8 bits, este número se irá guardando bit por bit en cada uno de los cuadros que se pueden ver en la Figura \ref{fig:func1}, también podemos ver en esta misma figura que la entrada de los datos es en serie (uno por uno), y la salida de ellos es en paralelo (8 bits).
 
 
 \begin{figure}[h]
 \includegraphics[scale=0.8]{funcionamiento1.png}
 \centering
-\caption{Iniciar el programa.}
+\caption{Representación del funcionamiento del circuito integrado 74HC595.}
 \label{fig:func1}
 \end{figure}
 
+Para que la toma de los datos sea exitosa es necesario un reloj que por medio de pulsos, controlará en qué momento ingresa al integrado el bit presente en la entrada. Tomaremos de ejemplo la representación binaria del número 49, la cual es 00110001.
 
+El primer paso para transformar la información que se encuentra en serie a paralelo es realizar el desplazamiento de los bits dentro del integrado iniciando por el bit más significativo (MSB por sus siglas en inglés), en nuestro ejemplo es un cero, que se encuentra presente en la entrada y que en el primer pulso del rejol ingresa a la primera posición del registro de desplazamiento. Figura \ref{fig:MSB}
+
+\begin{figure}[h]
+\includegraphics[scale=0.8]{MSB.png}
+\centering
+\caption{Entrada del MSB al integrado.}
+\label{fig:MSB}
+\end{figure}
+
+En el próximo pulso del reloj el MSB, ya dentro del integrado, se correrá una posición a la derecha en el registro de desplazamiento, mientras que el número a la derecha del MSB, en la entrada, se posicionará en la primera posición del registro de desplazamiento.
+
+\begin{figure}[h]
+\includegraphics[scale=0.8]{MSB1.png}
+\centering
+\caption{Desplazamiento de los bits dentro del integrado.}
+\label{fig:MSB1}
+\end{figure}
+
+Este proceso se repetirá hasta que se ingrese al registro de desplazamiento el último bit del número (Figura \ref{fig:registrolleno}).
+
+\begin{figure}[h]
+\includegraphics[scale=0.8]{BitsDespla.png}
+\centering
+\caption{Desplazamiento de los bits dentro del integrado.}
+\label{fig:bitsdespla}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[scale=0.8]{registrolleno.png}
+\centering
+\caption{Registro de desplazamiento lleno. Se utilizaron colores encima o abajo de los bits para identificar fácilmente cuál es cuál en el registro de desplazamiento.}
+\label{fig:registrolleno}
+\end{figure}
+
+Para que las salidas no vayan cambiando mientras que el registro de desplazamiento se llena, el integrado hace uso del registro de almacenamiento y el RCLK (Rejol del registro de almacenamiento).
+
+\begin{figure}[h]
+\includegraphics[scale=0.8]{regisalmacen.png}
+\centering
+\caption{Representación del registro de almacenamiento.}
+\label{fig:registroalmacenamiento}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
 \subsection{Aplicaciones.}\label{Aplicaciones}
 \begin{itemize}
 \item Network switches
@@ -105,5 +167,10 @@ El integrago 74HC595 hace parte de la familia de dispositivos SNx4HC59, la cual 
 \item LED displays
 \item Servers
 \end{itemize}
+
+
+\section{Cibergrafía} \label{ciber}
+(PONERLA CORRECTAMENTE)
+https://www.electrogeekshop.com/como-funciona-el-74hc595-shift-register-y-su-interfaz-con-arduino/
 
 \end{document}
