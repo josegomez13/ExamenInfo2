@@ -6,6 +6,10 @@
 \graphicspath{ {images/} }
 \usepackage{cite}
 \usepackage{amssymb, amsmath}
+\usepackage{geometry}
+\geometry{
+textheight=23cm
+}
 
 \begin{document}
 
@@ -21,16 +25,19 @@
        Análisis y diseño.
           
             
-        \vspace{5cm}
+        \vspace{6cm}
+        
+        \textbf{JOSE MIGUEL GOMEZ MONSALVE}
+        
+        \vspace{0.5cm}
+        
+        \textbf{ERIKA DAYANA LEÓN QUIROGA}
+        
+        \vspace{0.5cm}
+        
+        \textbf{DAVID AGUDELO OCHOA}
             
-        \textbf{
-        JOSE MIGUEL GOMEZ MONSALVE
-        ERIKA LEÓN QUIROGA\newline
-        DAVID AGUDELO OCHOA
-        }
-        
-        
-        
+
             
         \vfill
             
@@ -111,6 +118,7 @@ El primer paso para transformar la información que se encuentra en serie a para
 
 En el próximo pulso del reloj el MSB, ya dentro del integrado, se correrá una posición a la derecha en el registro de desplazamiento, mientras que el número a la derecha del MSB, en la entrada, se posicionará en la primera posición del registro de desplazamiento.
 
+\newpage
 \begin{figure}[h]
 \includegraphics[scale=0.8]{MSB1.png}
 \centering
@@ -134,8 +142,9 @@ Este proceso se repetirá hasta que se ingrese al registro de desplazamiento el 
 \label{fig:registrolleno}
 \end{figure}
 
-Para que las salidas no vayan cambiando mientras que el registro de desplazamiento se llena, el integrado hace uso del registro de almacenamiento y el RCLK (Rejol del registro de almacenamiento).
+Para que las salidas no vayan cambiando mientras que el registro de desplazamiento se llena, el integrado hace uso del registro de almacenamiento y el RCLK (Rejol del registro de almacenamiento). Figura \ref{fig:registroalmacenamiento}
 
+\newpage
 \begin{figure}[h]
 \includegraphics[scale=0.8]{regisalmacen.png}
 \centering
@@ -143,12 +152,14 @@ Para que las salidas no vayan cambiando mientras que el registro de desplazamien
 \label{fig:registroalmacenamiento}
 \end{figure}
 
+Una vez se finalice la carga de datos en el registro de desplazamiento, con un único pulso del RCLK se cargan todos los datos del registro de desplazamiento al registro de almacenamiento y se muestran en la salida. De esta forma se alcanzará el objetivo principal, transformar los datos de entrada en serie a datos de salida paralelos.
 
-
-
-
-
-
+\begin{figure}[h]
+\includegraphics[scale=0.8]{salida.png}
+\centering
+\caption{Representación del registro de almacenamiento.}
+\label{fig:salida}
+\end{figure}
 
 
 
