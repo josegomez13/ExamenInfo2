@@ -72,10 +72,6 @@ textheight=23cm
 \end{titlepage}
 
 \tableofcontents\newpage
-\section{Introducción}
-\noindent
-
-\newpage
 
 \section{Integrado 74HC595.} \label{Integrado}
 El integrago 74HC595 hace parte de la familia de dispositivos SNx4HC59, la cual contienen un registro de desplazamiento de 8 bits de entrada en serie y salida en paralelo, el registro de almacenamiento tiene salidas de 3 estados paralelos. Se proporcionan relojes separados para el registro de desplazamiento y el de almacenamiento. El registro de desplazamiento tiene una entrada de anulación directa (SRCLR), una entrada en serie (SER) y salidas en serie para la conexión en cascada. Tienen una amplia corriente de funcionamiento de 2 V a 6 V, y las salidas de 3 estados de alta corriente pueden controlar hasta 15 cargas LSTTL. Los dispositivos tienen un bajo consumo consumo de 80-μA (máximo) ICC.
@@ -196,6 +192,9 @@ Una vez se finalice la carga de datos en el registro de desplazamiento, con un �
 \end{itemize}
 
 
+\vspace{0.5cm}
+\noindent
+
 \section{Comunicación entre Arduinos} \label{Comunicación entre Arduinos}
 \subsection{Intento número 1}\label{intento1}
 A continuación se presenta el código y montaje de arduinos que se usaron para probar el tema de comunicación entre dos arduinos. Cabe aclarar que la implementación de estos se dio antes de las indicaciones y especificaciones de la clase del día 17 de febrero, por lo que no reflejan el futuro diseño a implementar, el cual contará con una gran participación del integrado 74HC595 y se sospecha que también del protocolo I2C para la señal de reloj.
@@ -204,7 +203,7 @@ A continuación se presenta el código y montaje de arduinos que se usaron para 
 
 montaje:
 \begin{figure}[h]
-\includegraphics[scale=0.8]{emisor1.png}
+\includegraphics[scale=0.6]{emisor1.png}
 \centering
 \caption{Prueba de emisión de bits y una señal de reloj por medio de 9 leds.}
 \label{fig:emisor1}
@@ -343,12 +342,120 @@ void loop()
  
 \end{lstlisting}
 
+\subsection{Intento número 2}\label{intento1}
+A continuación se presenta un modelo más cercano a lo que se planea hacer para la comunicación de la señal de reloj y los datos. Para ello usaremos el protocolo I2C.
 
+montaje:
+\begin{figure}[h]
+\includegraphics[scale=0.5]{emisorReceptor2.png}
+\centering
+\caption{Comunicación mediante el protocolo I2C.}
+\label{fig:emisorReceptor2}
+\end{figure}
+
+Código arduino emisor:
+\begin{lstlisting}[style=myArduino]//directivas de preprocesamiento
+#include <Wire.h>
+
+// C++ code
+//----------------------------------------------------------------
+//----------------------------------------------------------------
+
+byte pin[] = {9, 10, 11, 12, 13};
+byte estado = 0;
+#define retardo 2000
+int ValorSensor = 0;
+
+//----------------------------------------------------------------
+//----------------------------------------------------------------
+
+void setup()
+{
+  Wire.begin();
+  pinMode(LED_BUILTIN, OUTPUT);
+}
+
+//----------------------------------------------------------------
+//----------------------------------------------------------------
+
+void loop()
+{
+  Wire.beginTransmission(1); // Transmite al Esclavo 1
+  Wire.write(estado);
+  Wire.endTransmission();
+  
+  digitalWrite(LED_BUILTIN, estado);
+  
+  delay(retardo);
+  
+  if (estado == 0)
+  {
+    estado = 1;
+  }
+  else
+  {
+    estado = 0;
+  }
+}
+ 
+\end{lstlisting}
+
+Código arduino receptor:
+\begin{lstlisting}[style=myArduino]//directivas de preprocesamiento
+#include <Wire.h>
+
+void llegaDato(int howMany);
+// C++ code
+//
+void setup()
+{
+  pinMode(13, OUTPUT);    // Pines en modo salida
+  Wire.begin(1); // Unimos este dispositivo al bus I2C con dirección 2 (Esclavo 2)
+  Wire.onReceive(llegaDato);
+  pinMode(LED_BUILTIN, OUTPUT);
+}
+
+void loop()
+{
+  delay(30); // Wait for 1000 millisecond(s)
+}
+
+void llegaDato(int howMany){  
+  int estado = 0;
+  if (Wire.available() == 1) // Si hay un byte disponible
+  {
+    estado = Wire.read();
+  }
+  digitalWrite(13,estado);   // Activamos/desactivamos salida depende del Maestro
+}
+ 
+\end{lstlisting}
+
+\section{Solución propuesta.} \label{Integrado}
+\noindent
+Se plantea una solución en 3 ciclos. \textbf {Planeación, Ejecución, Verificación}\newline
+\textbf{Paso 1 (Planeacion):} \newline
+Se analiza el problema propuesto  y se deducen los componentes a utilizar, adicional se busca el datasheet y se analiza el funcionamiento del integrado 74HC595 para ir bosquejando un circuito.\newline
+\textbf{Paso 2 (Ejecución):} \newline
+En esta fase ya se empezó a integrar los componentes al proyecto, luego de tener los componentes establecidos se procede con el aporte de ideas para la ejecuccion de los problemas planteados, de donde surgen las siguientes ideas:\newline
+
+El arreglo de datos a procesar se ingresará al código del arduino directamente.
+Se conectarán los dos arduinos, transmisor y receptor, el transmisor pasará los datos al integrado 74HC595 para que pasen de datos en serie a paralelo, estos datos paralelos serán los que entren a las compuertas lógicas para comprobar si son datos de interés o no. El transmisor también pasará los datos al arduino receptor y dependiendo el resultado en el sistema de desencriptación mostrará o no los datos en la pantalla LCD.
+
+El sistema de desencriptación se modelará haciendo uso de integrados construidos con compuertas lógicas (xor, or, and, nand, xnor, nor, not) depende de la necesidad. Las compuertas con mayor posibilidad de ser usadas son la XOR, que según su tabla de verdad su salida es 0 cuando sus entradas son iguales y 1 cuando son diferentes. Otra compuerta sería la NOT, para negar las anteriores salidas y que me quede 1 cuando las entradas son iguales y cero cuando son diferentes. Por último se haría uso de compuertas AND para verificar que los bits de entrada sean iguales a la clave que me indica cuales son los datos reales a mostrar en pantalla. Este sistema de desencriptación, con un true/false, le indicará al arduino receptor la información que debe clasificar como el mensaje real enviado por el arduino emisor.
+Haciendo uso de dos puertos digitales, por uno ingresará el true o false (confirmación del mensaje real), y por el otro el byte correspondiente al mensaje real.
+Finalmente se mostrará la información por medio de un lcd (liquid crystal display)\newline
+
+\textbf{Paso 3 (Verificación):} \newline
+Ya por ultimo se ejecutará el programa verificando que todo este en orden y haciendo las llamadas pruebas de escritorio, con el fin de garantizar el funcionamiento optimo del programa, también se hizo una verificacion de componentes conectados.
 
 
 \section{Cibergrafía} \label{ciber}
-(PONERLA CORRECTAMENTE)
+
 https://www.electrogeekshop.com/como-funciona-el-74hc595-shift-register-y-su-interfaz-con-arduino/
-\newline (PONERLA CORRECTAMENTE) https://github.com/trihedral/ArduinoLatexListing
+\newline
+https://github.com/trihedral/ArduinoLatexListing
+\newline
+https://www.youtube.com/watch?v=9gfZnNPBlVg
 
 \end{document}
