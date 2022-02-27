@@ -273,10 +273,10 @@ void loop()
 
 
 \section{Comunicación entre Arduinos} \label{Comunicación entre Arduinos}
-\subsection{Intento número 1}\label{intento1}
+\subsection{Prueba 1}\label{intento1}
 A continuación se presenta el código y montaje de arduinos que se usaron para probar el tema de comunicación entre dos arduinos. Cabe aclarar que la implementación de estos se dio antes de las indicaciones y especificaciones de la clase del día 17 de febrero, por lo que no reflejan el futuro diseño a implementar, el cual contará con una gran participación del integrado 74HC595 y se sospecha que también del protocolo I2C para la señal de reloj.
 
-\subsubsection{arduino emisor}\label{intento1}
+\subsubsection{Arduino emisor.}\label{intento1}
 
 montaje:
 \begin{figure}[h]
@@ -328,7 +328,7 @@ void loop()
 
 
 \newpage
-\subsubsection{arduino emisor y receptor}\label{intento1}
+\subsubsection{Conexión entre arduino emisor y receptor}\label{intento1}
 
 montaje:
 \begin{figure}[h]
@@ -419,7 +419,7 @@ void loop()
  
 \end{lstlisting}
 
-\subsection{Intento número 2(protocolo I2C)}\label{intento2}
+\subsection{Prueba 2: Protocolo I2C}\label{intento2}
 A continuación se presenta un modelo más cercano a lo que se planea hacer para la comunicación de la señal de reloj y los datos. Para ello usaremos el protocolo I2C.
 
 montaje:
@@ -508,7 +508,7 @@ void llegaDato(int howMany){
  
 \end{lstlisting}
 
-\subsection{Intento número 3: Prueba de conexión entre arduinos usando puertos digitales}\label{intento3}
+\subsection{Prueba 3: Conexión entre arduinos usando puertos digitales}\label{intento3}
 Tras la sesión de clase del día 25 de febrero, el profesor nos indicó que no había necesidad de recurrir a protocolos como el I2C, por lo que se procedió a hacer una implementación mediante el uso de puertos digitales únicamente. \newline A continuación se presenta primeramente el montaje del uso del circuito integrado 74HC595, para probar así el proceso de emisión del arduino generador , y el proceso de recepción del segundo arduino, a la vez que verificamos con el integrado.
 \newline Montaje: \newline \newline \newline
 
@@ -601,7 +601,7 @@ void loop()
 }
 \end{lstlisting}
 
-\subsection{Intento número 4 (conexión entre arduinos (funciona:muestra bin y dec))}\label{intento4}
+\subsubsection{Conexión entre arduinos usando puertos digitales.}\label{intento4}
 Tras varias horas de prueba se consigue una comunicación exitosa entre ambos arduinos, no solo mostrando los números en formato binario, sino también en décimal. (el montaje es el mismo del intento número 3).
 
 Código:
@@ -723,7 +723,7 @@ byte dos_exp (int exp){
 }
 \end{lstlisting}
 
-\subsection{Intento número 4 mejorado (implementacion lcd bin y dec)}\label{intento4}
+\subsubsection{Conexión entre arduinos: Pantalla LCD}\label{intento4}
 Una vez funciona la comunicación entre arduinos, se procede a traspasar el codigo, de modo que el despliegue de información pase del monitor serial, como venía mostrándose, a un display lcd.
 
 Montaje:
@@ -866,6 +866,19 @@ byte dos_exp (int exp){
 }
 \end{lstlisting}
 
+\section{Bloque de desencriptación.} \label{desencriptacion}
+La tarea principal pedida en este proyecto es la desencriptación de cierta información en forma de arreglo que va a llegar para ser procesada, este proceso de desencriptación se quiere realizar por medio de hardware para así aliviar un poco la carga del programa que realiza la recepción de los datos y la conexión entre los arduinos.
+
+\subsection{Prueba 1: Integrado 74HC08 y 74HC21 (NO FUNCIONA)}
+
+\begin{figure}[h]
+\includegraphics[scale=0.8]{74HC08.png}
+\centering
+\caption{Bloque de desencriptación hecho con compuertas AND.}
+\label{fig:74HC08}
+\end{figure}
+
+NO SE INCLUYE CÓDIGO PUES EN ESTA SECCIÓN NO SE CAMBIA NADA EN ÉL
 
 \section{Cibergrafía} \label{ciber}
 
