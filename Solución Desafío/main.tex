@@ -198,6 +198,10 @@ Una vez se finalice la carga de datos en el registro de desplazamiento, con un �
 
 La simulación se puede probar utilizando el siguiente link: https://www.tinkercad.com/things/iBjAIisXge3
 
+El montaje del circuito utilizando el 74HC595 realizado con pulsadores utiliza los conceptos vistos en la sección en donde se explica el funcionamiento del integrado. 
+Se utiliza un interruptor deslizante para la entrada serial (SER), y dos pulsadores o switches que harán el trabajo de los relojes (SRCLK y RCLK). Si el interruptor deslizante está posicionado a la izquierda significa que entra un cero, si está posicionado a la derecha, es un uno. 
+Para realizar la entrada de los datos al integrado, se desliza el interruptor SER hacia el lado del dato que necesito ingresar, después de esto se hace la activación del reloj del registro de desplazamiento (SRCLK) oprimiendo el switch con este nombre una vez, de esta forma se subirá el primer dato. Para el segundo dato se realizá el mismo procedimiento: se desliza el interruptor con el nombre SER hacia el lado del dato que requiere ingresar (izquierda cero, derecha uno) y posterior a esto se oprime una vez el interruptor llamado SRCLK. Este proceso se realiza hasta que ingrese los ocho datos que puede almacenar el integrado 74HC595, cuando termine de ingresar los datos se procede a oprimir el interruptor llamado RCLK, el cuál mandará los datos almacenados en el integrado hacia las salidas, por lo que el número ingresado se verá reflejado en los LEDs incluidos en el circuito.
+
 \item Con arduino: 
 
 Durante el proceso de implementación fuimos documentando las fases y/o pasos en el desarrolo del integrado con el arduino, de lo cual tenemos la siguiente explicación: \newline
@@ -214,7 +218,7 @@ Inicialmente se cuenta con definiciones de macros para este arduino como: TIEMPO
 \label{fig:reemplazo pulsador por arduino}
 \end{figure}
 
-\newpage
+
 \begin{lstlisting}[style=myArduino]
 //directivas de preprocesamiento
 #define tiempo 2000
@@ -278,14 +282,6 @@ A continuación se presenta el código y montaje de arduinos que se usaron para 
 
 \subsubsection{Arduino emisor.}\label{intento1}
 
-montaje:
-\begin{figure}[h]
-\includegraphics[scale=0.6]{emisor1.png}
-\centering
-\caption{Prueba de emisión de bits y una señal de reloj por medio de 9 leds.}
-\label{fig:emisor1}
-\end{figure}
-
 código:
 \begin{lstlisting}[style=myArduino]//directivas de preprocesamiento
 #define tiempo 1000
@@ -326,6 +322,13 @@ void loop()
 //cuerpo de las funciones
 \end{lstlisting}
 
+montaje:
+\begin{figure}[h]
+\includegraphics[scale=0.6]{emisor1.png}
+\centering
+\caption{Prueba de emisión de bits y una señal de reloj por medio de 9 leds.}
+\label{fig:emisor1}
+\end{figure}
 
 \newpage
 \subsubsection{Conexión entre arduino emisor y receptor}\label{intento1}
@@ -723,6 +726,13 @@ byte dos_exp (int exp){
 }
 \end{lstlisting}
 
+Salida por monitor serial:
+\begin{figure}[h]
+\includegraphics[scale=0.6]{salida monitor serial.png}
+\centering
+\caption{Salida monitor serial mostrando la recepción tanto en binario como en decimal.}
+\label{fig:reemplazo pulsador por arduino}
+\end{figure}
 \subsubsection{Conexión entre arduinos: Pantalla LCD}\label{intento4}
 Una vez funciona la comunicación entre arduinos, se procede a traspasar el codigo, de modo que el despliegue de información pase del monitor serial, como venía mostrándose, a un display lcd.
 
@@ -859,7 +869,7 @@ byte bintodec(byte * bin){ // recibe un binario y retorna un decimal en tipo ent
 
 byte dos_exp (int exp){
     int acu = 1;
-    for (int i=0 ; i<exp ; i++){
+    for (int i=0 ; i<exp ; i++){ 
         acu = acu*2;
     }
     return acu;
@@ -872,14 +882,57 @@ La tarea principal pedida en este proyecto es la desencriptación de cierta info
 \subsection{Prueba 1: Integrado 74HC08 y 74HC21 (NO FUNCIONA)}
 
 \begin{figure}[h]
-\includegraphics[scale=0.8]{74HC08.png}
+\includegraphics[scale=0.6]{74HC08.png}
 \centering
 \caption{Bloque de desencriptación hecho con compuertas AND.}
 \label{fig:74HC08}
 \end{figure}
 
-NO SE INCLUYE CÓDIGO PUES EN ESTA SECCIÓN NO SE CAMBIA NADA EN ÉL
+Para comprobar el funcionamiento del sistema de desencriptación se tomó la clave asignada al grupo y se ingresó en el arreglo de tipo byte anteriormente mostrado en los códigos de conexión entre arduino. 
+Se llegó a la conclusión, gracias a la tabla de verdad de la compuerta AND, que esta no era la indicada para la comparación de números que se requiere para que el sistema de desencriptación realice un trabajo exitoso.
 
+Es necesario el uso de compuertas lógicas XOR que estén conectadas con compuertas lógicas NOT, las cuales nos dirán si el número binario que sale por el integrado 74HC595 de forma paralela es nuestra clave de desencriptación.
+\newpage
+\subsection{Prueba 2: Integrado 74HC86(XOR) 74HC04(NOT) 74HC21(AND4INPUTS) 74HC08(AND) (FUNCIONA)}
+Tras descubrir que la implementación de solo compuertas AND no era adecuada, se dibujó el circuito de compuertas lógicas para así saber claramente qué compuertas eran necesarias. El dibujo se presenta a continuación:
+\begin{figure}[h]
+\includegraphics[scale=0.2]{compuertas.png}
+\centering
+\caption{Dibujo de las compuertas necesarias.}
+\label{fig:compuertas}
+\end{figure}
+
+\newpage
+Tras esto se procedió al montaje con las compuertas necesarias como se presenta a continuación:
+\begin{figure}[h]
+\includegraphics[scale=0.7]{desencriptacion1.png}
+\centering
+\caption{Inicio del montaje de desencriptación.}
+\label{fig:desencriptación1}
+\end{figure}
+
+\newpage
+Una vez terminado, se visualiza el siguiente montaje:
+\begin{figure}[h]
+\includegraphics[scale=0.7]{desencriptacion2.png}
+\centering
+\caption{Montaje de desencriptación finalizado.}
+\label{fig:desencriptación2}
+\end{figure}
+
+\newpage
+Sin embargo se debía verificar su funcionamiento, y para ello se hizo uso de dos pulsadores, un switch y una fuente de voltaje de 5v:
+\begin{figure}[h]
+\includegraphics[scale=0.7]{desencriptacion pulsadores.png}
+\centering
+\caption{Montaje de desencriptación finalizado con pulsadores y fuente.}
+\label{fig:desencriptación3}
+\end{figure}
+\newline
+Afortunadamente, el circuito respondió tal como se esperaba, dando por finalizada la tarea de construir un desencriptador exitoso.
+
+
+\newpage
 \section{Cibergrafía} \label{ciber}
 
 https://www.electrogeekshop.com/como-funciona-el-74hc595-shift-register-y-su-interfaz-con-arduino/
