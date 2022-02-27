@@ -76,7 +76,7 @@ textheight=23cm
 
 
 \section{Integrado 74HC595.} \label{Integrado}
-El integrago 74HC595 hace parte de la familia de dispositivos SNx4HC59, la cual contienen un registro de desplazamiento de 8 bits de entrada en serie y salida en paralelo, el registro de almacenamiento tiene salidas de 3 estados paralelos. Se proporcionan relojes separados para el registro de desplazamiento y el de almacenamiento. El registro de desplazamiento tiene una entrada de anulación directa (SRCLR), una entrada en serie (SER) y salidas en serie para la conexión en cascada. Tienen una amplia corriente de funcionamiento de 2 V a 6 V, y las salidas de 3 estados de alta corriente pueden controlar hasta 15 cargas LSTTL. Los dispositivos tienen un bajo consumo consumo de 80-μA (máximo) ICC.
+El integrago 74HC595 hace parte de la familia de dispositivos SNx4HC59, la cual contienen un registro de desplazamiento de 8 bits de entrada en serie y salida en paralelo, el registro de almacenamiento tiene salidas de 3 estados paralelos. Se proporcionan relojes separados para el registro de desplazamiento y el de almacenamiento. El registro de desplazamiento tiene una entrada de anulación directa (SRCLR), una entrada en serie (SER) y salidas en serie para la conexión en cascada. Tienen una amplia corriente de funcionamiento de 2 V a 6 V, y las salidas de 3 estados de alta corriente pueden controlar hasta 15 cargas LSTTL. Los dispositivos tienen un bajo consumo consumo de 80-uA (máximo) ICC.
 \subsection{Características del integrado.}\label{caracteristicas}
  \begin{itemize}
  
@@ -98,7 +98,7 @@ El integrago 74HC595 hace parte de la familia de dispositivos SNx4HC59, la cual 
 \begin{itemize}
 \item Los pines de $Q_B$(pin 1) a $Q_H$(pin 7), añadiendo $Q_A$(pin 15) representan las salidas del integrado.
 \item $V_C_C$(pin 16) es la alimentación y GND(pin 8) se conecta a tierra.
-\item $Q_H_'$(pin 9) se utiliza para conectar otro integrado 74HC595 y generar un efecto de cascada.
+\item $Q_H$ (pin 9) se utiliza para conectar otro integrado 74HC595 y generar un efecto de cascada.
 \item El pin 14 o SER es el pin donde se envían los datos.
 \item $\Bar{OE}$(pin 13) llamado Output Enable, habilita las salidas y se activa con un nivel bajo, por lo cual, para que siempre esté activo se conecta a GND.
 \item El RCLK (pin 12) es el reloj del registro de almacenamiento y se utiliza para actualizar los datos a los pines de salida.
@@ -175,7 +175,7 @@ Una vez se finalice la carga de datos en el registro de desplazamiento, con un �
 \label{fig:salida}
 \end{figure}
 
-\newpage
+
 \subsection{Aplicaciones.}\label{Aplicaciones}
 \begin{itemize}
 \item Network switches
@@ -184,7 +184,8 @@ Una vez se finalice la carga de datos en el registro de desplazamiento, con un �
 \item Servers
 \end{itemize}
 
-\subsection{Uso del Circuito Integrado 74HC595.}\label{Aplicaciones}
+\subsection{Uso del Circuito Integrado 74HC595.}\label{Usocircuito}
+
 \begin{itemize}
 \item Con pulsadores: 
 
@@ -195,10 +196,77 @@ Una vez se finalice la carga de datos en el registro de desplazamiento, con un �
 \label{fig:pulsadores}
 \end{figure}
 
-\newline
 La simulación se puede probar utilizando el siguiente link: https://www.tinkercad.com/things/iBjAIisXge3
 
+\item Con arduino: 
+
+Durante el proceso de implementación fuimos documentando las fases y/o pasos en el desarrolo del integrado con el arduino, de lo cual tenemos la siguiente explicación: \newline
+Se define el uso de dos arduinos, montados con su respectiva placa base.
+\textbf{Arduino emisor:} \newline
+Inicialmente se cuenta con definiciones de macros para este arduino como: TIEMPO, SER, RCLK, SRCLK, TAMAÑO.En variables tenemos la definicion del arreglo donde se utiliza la funcion sizeof, la cual nos permite obtener la longitud de un arreglo, para lo cual toma una variable de entrada de cualquier tipo de datos y devuelve el número de bytes ocupados.
+
+ A continuación se presenta primeramente el montaje del uso del circuito integrado 74HC595 con pulsadores, pero esta vez reemplazando estos últimos con un arduino, para probar así el proceso de emisión del arduino y de recepción del integrado en conjunto.
+
+\begin{figure}[h]
+\includegraphics[scale=0.4]{prueba arduino integrado.png}
+\centering
+\caption{Circuito con integrado 74HC595 haciendo uso de un arduino.}
+\label{fig:reemplazo pulsador por arduino}
+\end{figure}
+
+\newpage
+\begin{lstlisting}[style=myArduino]
+//directivas de preprocesamiento
+#define tiempo 2000
+#define SER 2
+#define RCLK 3
+#define SRCLK 4
+
+
+byte codigo[8]={10,255,0,49,50,6,7,8};//A byte stores an 8-bit unsigned number, from 0 to 255.
+//----------------------------------------------------------------
+//prototipo de las funciones
+
+//----------------------------------------------------------------
+//setup
+void setup()
+{
+  for(int i=2;i<5;i++)
+  {
+    pinMode(i, OUTPUT);
+  }
+  
+}
+//----------------------------------------------------------------
+//loop
+void loop()
+{
+  for(int i=0;i<8;i++)
+  {
+  	//delay(25);
+    for(int j=0;j<8;j++)
+    {
+      digitalWrite(SRCLK, LOW);
+      digitalWrite(SER, bitRead(codigo[i], j));
+      digitalWrite(SRCLK, HIGH);
+    }
+    //delay(tiempo-25);
+    delay(tiempo);
+    digitalWrite(RCLK, HIGH);
+    digitalWrite(RCLK, LOW);
+    
+  }
+  
+  
+  
+}
+//----------------------------------------------------------------
+//cuerpo de las funciones
+\end{lstlisting}
+
+
 \end{itemize}
+
 
 \vspace{0.5cm}
 \noindent
@@ -440,68 +508,7 @@ void llegaDato(int howMany){
  
 \end{lstlisting}
 
-\subsection{Intento número 3 hay que moverlo a la section integrados}\label{intento3 mover}
- A continuación se presenta primeramente el montaje del uso del circuito integrado 74HC595 con pulsadores, pero esta vez reemplazando estos últimos con un arduino, para probar así el proceso de emisión del arduino y de recepción del integrado en conjunto.
-\newline Montaje: \newline \newline \newline
-
-\begin{figure}[h]
-\includegraphics[scale=0.4]{prueba arduino integrado.png}
-\centering
-\caption{Circuito con integrado 74HC595 haciendo uso de un arduino.}
-\label{fig:reemplazo pulsador por arduino}
-\end{figure}
-
-Código:
-\begin{lstlisting}[style=myArduino]
-//directivas de preprocesamiento
-#define tiempo 2000
-#define SER 2
-#define RCLK 3
-#define SRCLK 4
-
-
-byte codigo[8]={10,255,0,49,50,6,7,8};//A byte stores an 8-bit unsigned number, from 0 to 255.
-//----------------------------------------------------------------
-//prototipo de las funciones
-
-//----------------------------------------------------------------
-//setup
-void setup()
-{
-  for(int i=2;i<5;i++)
-  {
-    pinMode(i, OUTPUT);
-  }
-  
-}
-//----------------------------------------------------------------
-//loop
-void loop()
-{
-  for(int i=0;i<8;i++)
-  {
-  	//delay(25);
-    for(int j=0;j<8;j++)
-    {
-      digitalWrite(SRCLK, LOW);
-      digitalWrite(SER, bitRead(codigo[i], j));
-      digitalWrite(SRCLK, HIGH);
-    }
-    //delay(tiempo-25);
-    delay(tiempo);
-    digitalWrite(RCLK, HIGH);
-    digitalWrite(RCLK, LOW);
-    
-  }
-  
-  
-  
-}
-//----------------------------------------------------------------
-//cuerpo de las funciones
-\end{lstlisting}
-
-\subsection{Intento número 3(prueba conexión entre arduinos falla)}\label{intento3}
+\subsection{Intento número 3: Prueba de conexión entre arduinos usando puertos digitales}\label{intento3}
 Tras la sesión de clase del día 25 de febrero, el profesor nos indicó que no había necesidad de recurrir a protocolos como el I2C, por lo que se procedió a hacer una implementación mediante el uso de puertos digitales únicamente. \newline A continuación se presenta primeramente el montaje del uso del circuito integrado 74HC595, para probar así el proceso de emisión del arduino generador , y el proceso de recepción del segundo arduino, a la vez que verificamos con el integrado.
 \newline Montaje: \newline \newline \newline
 
@@ -595,9 +602,9 @@ void loop()
 \end{lstlisting}
 
 \subsection{Intento número 4 (conexión entre arduinos (funciona:muestra bin y dec))}\label{intento4}
-Tras varias horas de prueba se consigue una comunicación exitosa entre ambos arduinos, no solo mostrando los números en formato binario, sino también en décimal. (el montaje es el mismo del intento número 3)
+Tras varias horas de prueba se consigue una comunicación exitosa entre ambos arduinos, no solo mostrando los números en formato binario, sino también en décimal. (el montaje es el mismo del intento número 3).
 
-\newline Código:
+Código:
 \begin{lstlisting}[style=myArduino]
 //directivas de preprocesamiento
 #define tiempo 1000
@@ -719,7 +726,7 @@ byte dos_exp (int exp){
 \subsection{Intento número 4 mejorado (implementacion lcd bin y dec)}\label{intento4}
 Una vez funciona la comunicación entre arduinos, se procede a traspasar el codigo, de modo que el despliegue de información pase del monitor serial, como venía mostrándose, a un display lcd.
 
-\newline Montaje: \newline \newline \newline
+Montaje:
 
 \begin{figure}[h]
 \includegraphics[scale=0.6]{implementacion lcd bin y dec.png}
@@ -728,7 +735,7 @@ Una vez funciona la comunicación entre arduinos, se procede a traspasar el codi
 \label{fig:reemplazo pulsador por arduino}
 \end{figure}
 
-\newline Código emisor:
+Código emisor:
 \begin{lstlisting}[style=myArduino]
 //directivas de preprocesamiento
 #define tiempo 1000
@@ -858,26 +865,6 @@ byte dos_exp (int exp){
     return acu;
 }
 \end{lstlisting}
-
-
-
-\section{Solución propuesta.} \label{Integrado}
-\noindent
-Se plantea una solución en 3 ciclos. \textbf {Planeación, Ejecución, Verificación}\newline
-\textbf{Paso 1 (Planeacion):} \newline
-Se analiza el problema propuesto  y se deducen los componentes a utilizar, adicional se busca el datasheet y se analiza el funcionamiento del integrado 74HC595 para ir bosquejando un circuito.\newline
-\textbf{Paso 2 (Ejecución):} \newline
-En esta fase ya se empezó a integrar los componentes al proyecto, luego de tener los componentes establecidos se procede con el aporte de ideas para la ejecuccion de los problemas planteados, de donde surgen las siguientes ideas:\newline
-
-El arreglo de datos a procesar se ingresará al código del arduino directamente.
-Se conectarán los dos arduinos, transmisor y receptor, el transmisor pasará los datos al integrado 74HC595 para que pasen de datos en serie a paralelo, estos datos paralelos serán los que entren a las compuertas lógicas para comprobar si son datos de interés o no. El transmisor también pasará los datos al arduino receptor y dependiendo el resultado en el sistema de desencriptación mostrará o no los datos en la pantalla LCD.
-
-El sistema de desencriptación se modelará haciendo uso de integrados construidos con compuertas lógicas (xor, or, and, nand, xnor, nor, not) depende de la necesidad. Las compuertas con mayor posibilidad de ser usadas son la XOR, que según su tabla de verdad su salida es 0 cuando sus entradas son iguales y 1 cuando son diferentes. Otra compuerta sería la NOT, para negar las anteriores salidas y que me quede 1 cuando las entradas son iguales y cero cuando son diferentes. Por último se haría uso de compuertas AND para verificar que los bits de entrada sean iguales a la clave que me indica cuales son los datos reales a mostrar en pantalla. Este sistema de desencriptación, con un true/false, le indicará al arduino receptor la información que debe clasificar como el mensaje real enviado por el arduino emisor.
-Haciendo uso de dos puertos digitales, por uno ingresará el true o false (confirmación del mensaje real), y por el otro el byte correspondiente al mensaje real.
-Finalmente se mostrará la información por medio de un lcd (liquid crystal display)\newline
-
-\textbf{Paso 3 (Verificación):} \newline
-Ya por ultimo se ejecutará el programa verificando que todo este en orden y haciendo las llamadas pruebas de escritorio, con el fin de garantizar el funcionamiento optimo del programa, también se hizo una verificacion de componentes conectados.
 
 
 \section{Cibergrafía} \label{ciber}
