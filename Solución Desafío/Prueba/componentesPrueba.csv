@@ -1,0 +1,4 @@
+﻿Nombre,Cantidad,Componente
+"U2",1," Arduino Uno R3"
+"U3, U1",2," Registro de desplazamiento de 8 bits"
+"R1, R2, R3, R4, R5, R6, R7, R8",8,"560 Ω Resistencia"
