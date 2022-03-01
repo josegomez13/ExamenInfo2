@@ -5,6 +5,7 @@
 \usepackage{graphicx}
 \graphicspath{ {images/} }
 \usepackage{cite}
+\usepackage{hyperref}
 \usepackage{amssymb, amsmath}
 \usepackage{geometry}
 \geometry{
@@ -202,12 +203,43 @@ El montaje del circuito utilizando el 74HC595 realizado con pulsadores utiliza l
 Se utiliza un interruptor deslizante para la entrada serial (SER), y dos pulsadores o switches que harán el trabajo de los relojes (SRCLK y RCLK). Si el interruptor deslizante está posicionado a la izquierda significa que entra un cero, si está posicionado a la derecha, es un uno. 
 Para realizar la entrada de los datos al integrado, se desliza el interruptor SER hacia el lado del dato que necesito ingresar, después de esto se hace la activación del reloj del registro de desplazamiento (SRCLK) oprimiendo el switch con este nombre una vez, de esta forma se subirá el primer dato. Para el segundo dato se realizá el mismo procedimiento: se desliza el interruptor con el nombre SER hacia el lado del dato que requiere ingresar (izquierda cero, derecha uno) y posterior a esto se oprime una vez el interruptor llamado SRCLK. Este proceso se realiza hasta que ingrese los ocho datos que puede almacenar el integrado 74HC595, cuando termine de ingresar los datos se procede a oprimir el interruptor llamado RCLK, el cuál mandará los datos almacenados en el integrado hacia las salidas, por lo que el número ingresado se verá reflejado en los LEDs incluidos en el circuito.
 
+
+\begin{figure}[h]
+\includegraphics[scale=0.5]{circuitoconexion.png}
+\centering
+\caption{Circuito de conexión esquemático 74HC595.}
+\label{fig:Circuito de conexión esquemético}
+\end{figure}
+
 \item Con arduino: 
 
-Durante el proceso de implementación fuimos documentando las fases y/o pasos en el desarrolo del integrado con el arduino, de lo cual tenemos la siguiente explicación: \newline
-Se define el uso de dos arduinos, montados con su respectiva placa base.
-\textbf{Arduino emisor:} \newline
-Inicialmente se cuenta con definiciones de macros para este arduino como: TIEMPO, SER, RCLK, SRCLK, TAMAÑO.En variables tenemos la definicion del arreglo donde se utiliza la funcion sizeof, la cual nos permite obtener la longitud de un arreglo, para lo cual toma una variable de entrada de cualquier tipo de datos y devuelve el número de bytes ocupados.
+
+Se define el uso de dos arduinos, montados con sus respectivas placa base, arduino emisor el cual será el encargado de transmitir la información y arduino receptor quien nos indicará al momento de recibir la información desencriptada. El uso de la función "bintodec" la cual esta incluida en el codigo, fue clave, ya que nos permite convertir un binario a un decimal y de esta forma será la manera en la que transmitiremos los datos entre los arduinos.\newline
+En el integrado se tiene un registro de 8 bits de dezplazamiento por cada salida, toma una entrada en serie a través de un solo pin y lo convierte en salida paralela de 8 bits reduciendo así eficazmente el número de pines de interfaz entre un Microcontrolador y sus dispositivosde salida
+En el registro de desplazamiento tenemos una entrada en serie y datos en paralelos (salida), con cada pulso se comienza el progreso o 
+ingreso de los datos en serie SER, reloj (SRCLK).\newline
+Los tres pines del registro de turnos que se necesitan para conectarse a Arduino son los pines 11 (la entrada del reloj), 12 (la entrada del reloj del registro de almacenamiento o simplemente la entrada del pestillo) y 14 (laentradade datos).
+
+
+
+\begin{table}
+\centering
+\begin{tabular}{lll}
+\textbf{Número pin} & \textbf{Nombre del pin}       & \textbf{Descripción}                                              \\
+1,2,3,4,5,6,7       & Pines de salida (de Q1 a Q7)  & El 74hc595 tiene 8 pines de salida. Se pueden controlar en serie  \\
+8                   & tierra                        & Conectado a tierra                                                \\
+9                   & (P7) Salida en serie          & Conexion de más de un 74hc595 en cascada                          \\
+10                  & (MR) Restablecimiento maestro & Restablece todas las salidas como bajas.                          \\
+11                  & (SH\_CP) Reloj                & Éste es el pin del reloj                                          \\
+12                  & (ST\_CP) Pestillo             & Se utiliza para actualizar los datos a los pinesde salida.        \\
+13                  & (OE) Activación de salida     & Se utiliza para desactivar las salidas.                           \\
+14                  & (DS) Datos en serie           & Este es el pin al que se envíanlos datos                          \\
+15                  & (P0) salida                   & El primer pasador de salida.                                      \\
+16                  & Vcc                           & Este pin alimenta el IC                                          
+\end{tabular}
+\end{table}
+
+\newline
 
  A continuación se presenta primeramente el montaje del uso del circuito integrado 74HC595 con pulsadores, pero esta vez reemplazando estos últimos con un arduino, para probar así el proceso de emisión del arduino y de recepción del integrado en conjunto.
 
@@ -879,7 +911,8 @@ byte dos_exp (int exp){
 \section{Bloque de desencriptación.} \label{desencriptacion}
 La tarea principal pedida en este proyecto es la desencriptación de cierta información en forma de arreglo que va a llegar para ser procesada, este proceso de desencriptación se quiere realizar por medio de hardware para así aliviar un poco la carga del programa que realiza la recepción de los datos y la conexión entre los arduinos.
 
-\subsection{Prueba 1: Integrado 74HC08 y 74HC21 (NO FUNCIONA)}
+\newpage
+\subsection{Prueba 1: Integrado 74HC08 y 74HC21}
 
 \begin{figure}[h]
 \includegraphics[scale=0.6]{74HC08.png}
@@ -892,18 +925,31 @@ Para comprobar el funcionamiento del sistema de desencriptación se tomó la cla
 Se llegó a la conclusión, gracias a la tabla de verdad de la compuerta AND, que esta no era la indicada para la comparación de números que se requiere para que el sistema de desencriptación realice un trabajo exitoso.
 
 Es necesario el uso de compuertas lógicas XOR que estén conectadas con compuertas lógicas NOT, las cuales nos dirán si el número binario que sale por el integrado 74HC595 de forma paralela es nuestra clave de desencriptación.
+
 \newpage
-\subsection{Prueba 2: Integrado 74HC86(XOR) 74HC04(NOT) 74HC21(AND4INPUTS) 74HC08(AND) (FUNCIONA)}
+\subsection{Prueba 2: Integrado 74HC86(XOR), 74HC04(NOT) 74HC21(AND4INPUTS), 74HC08(AND)}
 Tras descubrir que la implementación de solo compuertas AND no era adecuada, se dibujó el circuito de compuertas lógicas para así saber claramente qué compuertas eran necesarias. El dibujo se presenta a continuación:
+
 \begin{figure}[h]
 \includegraphics[scale=0.2]{compuertas.png}
 \centering
-\caption{Dibujo de las compuertas necesarias.}
+\caption{Conexión de las compuertas necesarias para la comparación de números.}
 \label{fig:compuertas}
 \end{figure}
 
-\newpage
-Tras esto se procedió al montaje con las compuertas necesarias como se presenta a continuación:
+\begin{figure}[h]
+\includegraphics[scale=0.8]{tablaVerdad.png}
+\centering
+\caption{Tablas de verdad de las compuertas XOR, AND y NOT.}
+\label{fig:TablaVerdad}
+\end{figure}
+
+Las compuertas que recibirán la información bit a bit desde el circuito integrado 74HC6595 son las XOR, las cuales teniendo en cuenta su tabla de verdad Figura \ref{fig:TablaVerdad} nos arrojarán 1 cuando los datos sean diferentes y 0 cuando sean iguales, es por esto que a la salida de estas compuertas se hará necesario el uso de compuertas negadoras, para que cuando nuestros datos sean iguales obtengamos un uno y cuando sean diferentes obtengamos un cero. Estas salidas que obtenemos de las compuertas negadoras pasarán a las compuertas AND de cuatro entradas, esto porque necesitaremos saber si todas las salidas de las compuertas son uno, lo que confirmaría que el número ingresado a las compuertas XOR (integrado 74HC86) es la clave que estamos buscando. Por último, obtendremos dos salidas de las compuertas descritas anteriormente, estas dos salidas deberán entrar en otra AND de dos entradas la que nos mostrará uno (true) cuando sus dos datos de entrada sean 1, y cero (false) en cualquier otro caso. 
+
+
+Después del análisis anterior se procedió al montaje con las compuertas en Tinkercad. Como podemos ver, se tomaron las salidas del integrado 74HC595 para ser comparadas en las compuertas XOR con la clave que necesitamos encontrar. La clave se ingresa en forma de binario con ayuda de GND (0) y Vcc (1), y se compara con las salidas del integrado 74HC595. Figura \ref{fig:desencriptación1}
+
+
 \begin{figure}[h]
 \includegraphics[scale=0.7]{desencriptacion1.png}
 \centering
@@ -912,7 +958,7 @@ Tras esto se procedió al montaje con las compuertas necesarias como se presenta
 \end{figure}
 
 \newpage
-Una vez terminado, se visualiza el siguiente montaje:
+Las salidas de las compuertas XOR pasan a los integrados 74HC04 para ser negadas, esto por la explicación que se dio anteriormente, y luego entran a las compuertas AND
 \begin{figure}[h]
 \includegraphics[scale=0.7]{desencriptacion2.png}
 \centering
@@ -931,6 +977,658 @@ Sin embargo se debía verificar su funcionamiento, y para ello se hizo uso de do
 \newline
 Afortunadamente, el circuito respondió tal como se esperaba, dando por finalizada la tarea de construir un desencriptador exitoso.
 
+
+\section{Implementación sistema completo.} \label{sistema completo}
+A continuación se presenta la integración del bloque de desencriptación y la comunicación entre arduinos:
+
+\subsection{Implementación sistema completo con salida en monitor serial}\label{intento1}
+Inicialmente se optó por implementarlo mostrando la salida por medio del monitor serial, para así poder confirmar su funcionamiento sin el riesgo que el error se encuentre en la conexión de los cables al lcd.
+
+\newline montaje:
+\begin{figure}[h]
+\includegraphics[scale=0.5]{integracion arduinos serial.png}
+\centering
+\caption{Integración del bloque de desencriptación, mostrando la información mediante el monitor serial}
+\label{fig:serial}
+\end{figure}
+
+Código emisor:
+\begin{lstlisting}[style=myArduino]
+//directivas de preprocesamiento
+#define TIEMPO 1000
+#define SER 2
+#define RCLK 3
+#define SRCLK 4
+
+
+byte codigo[30];
+//A byte stores an 8-bit unsigned number, from 0 to 255.
+int tamanoArray=sizeof(codigo)/sizeof(byte);
+//----------------------------------------------------------------
+//prototipo de las funciones
+
+//----------------------------------------------------------------
+//setup
+void setup()
+{
+  for(int i=2;i<5;i++)
+  {
+    pinMode(i, OUTPUT);
+    digitalWrite(i, LOW);
+  }
+  
+  //ensayo
+  for(int i=0;i<30;i++)
+  {
+    codigo[i]=i+14;
+  }
+}
+//----------------------------------------------------------------
+//loop
+void loop()
+{
+  for(int i=0;i<tamanoArray;i++)
+  {
+    for(int j=0;j<8;j++)
+    {
+      digitalWrite(SER, bitRead(codigo[i], j));
+      digitalWrite(SRCLK, HIGH);
+      delay(100);
+      digitalWrite(SRCLK, LOW);
+
+    }
+    delay(TIEMPO);
+    digitalWrite(RCLK, HIGH);
+    digitalWrite(RCLK, LOW);
+    
+  }
+  
+  
+  
+}
+//----------------------------------------------------------------
+//cuerpo de las funciones
+\end{lstlisting}
+
+Código receptor:
+\begin{lstlisting}[style=myArduino]
+#define SER 2
+#define RCLK 3
+#define SRCLK 4
+#define TIEMPO 1000
+#define CLAVE 5
+
+//byte codigo[]={1,2,255,0,15,6,7,8};
+//byte codigo[]={15,15,255,0,15,15,7,8};
+byte binario[8];
+
+byte bintodec(byte* bin);
+byte dos_exp (int exp);
+
+bool contar=false;
+int posicion=-1;
+
+void setup()
+{
+  Serial.begin(9600);
+  for(int i=2;i<6;i++)
+  {
+    pinMode(i, INPUT);
+  }
+}
+
+void loop()
+{
+  
+  if(digitalRead(SRCLK))
+  {
+    for(int i=0;i<8;i++)
+    {
+      while(!digitalRead(SRCLK))
+      {
+        
+      }
+      binario[i]=digitalRead(SER);
+      while(digitalRead(SRCLK))
+      {
+        
+      }
+    }
+    
+    delay(TIEMPO);
+    for(int i=7;i>=0;i--)
+    {
+      Serial.print(binario[i]);
+    }
+    Serial.println();
+    Serial.println(bintodec(binario));
+    
+    if(digitalRead(CLAVE))
+    {
+      contar=true;
+      Serial.println("se leyo la clave");
+    }
+    
+   	if(contar)
+    {
+      posicion++;
+      Serial.print("posicion= ");
+      Serial.println(posicion);
+    }
+    if(posicion==3)
+    {
+      Serial.println("hola");
+      contar=false;
+      posicion=-1;
+    }
+  }
+}
+//--------------------------------------------------------------
+//funciones
+byte bintodec(byte * bin){ // recibe un binario y retorna un decimal en tipo entero
+    byte dec = 0;
+    for(int i=7; i>=0 ; i--){
+        if (bin[i]>=1){
+                dec = dec + (dos_exp(i));
+        }
+    }
+    return dec;
+}
+
+byte dos_exp (int exp){
+    int acu = 1;
+    for (int i=0 ; i<exp ; i++){
+        acu = acu*2;
+    }
+    return acu;
+}
+\end{lstlisting}
+
+\subsection{Implementación sistema completo con salida en monitor serial y lcd}\label{intento1}
+Una vez se confirmó que no había ningún error, se procedió a implementarlo tanto en monitor serial como en el display lcd, para así poder verificar que la salida del serial coincida con la mostrada en el lcd.
+
+\newline montaje:
+\begin{figure}[h]
+\includegraphics[scale=0.5]{integracion arduinos serial y lcd.png}
+\centering
+\caption{Integración del bloque de desencriptación, mostrando la información mediante el monitor serial y el lcd}
+\label{fig:serialLcd}
+\end{figure}
+
+Código emisor:
+\begin{lstlisting}[style=myArduino]
+//directivas de preprocesamiento
+#define TIEMPO 1000
+#define SER 2
+#define RCLK 3
+#define SRCLK 4
+
+
+byte codigo[30];
+//A byte stores an 8-bit unsigned number, from 0 to 255.
+int tamanoArray=sizeof(codigo)/sizeof(byte);
+//----------------------------------------------------------------
+//prototipo de las funciones
+
+//----------------------------------------------------------------
+//setup
+void setup()
+{
+  for(int i=2;i<5;i++)
+  {
+    pinMode(i, OUTPUT);
+    digitalWrite(i, LOW);
+  }
+  
+  //ensayo
+  for(int i=0;i<30;i++)
+  {
+    codigo[i]=i+14;
+  }
+}
+//----------------------------------------------------------------
+//loop
+void loop()
+{
+  for(int i=0;i<tamanoArray;i++)
+  {
+    for(int j=0;j<8;j++)
+    {
+      digitalWrite(SER, bitRead(codigo[i], j));
+      digitalWrite(SRCLK, HIGH);
+      delay(100);
+      digitalWrite(SRCLK, LOW);
+
+    }
+    delay(TIEMPO);
+    digitalWrite(RCLK, HIGH);
+    digitalWrite(RCLK, LOW);
+    
+  }
+  
+  
+  
+}
+//----------------------------------------------------------------
+//cuerpo de las funciones
+\end{lstlisting}
+
+Código receptor serial:
+\begin{lstlisting}[style=myArduino]
+#define SER 2
+#define RCLK 3
+#define SRCLK 4
+#define TIEMPO 1000
+#define CLAVE 5
+
+//byte codigo[]={1,2,255,0,15,6,7,8};
+//byte codigo[]={15,15,255,0,15,15,7,8};
+byte binario[8];
+
+byte bintodec(byte* bin);
+byte dos_exp (int exp);
+
+bool contar=false;
+int posicion=-1;
+
+void setup()
+{
+  Serial.begin(9600);
+  for(int i=2;i<6;i++)
+  {
+    pinMode(i, INPUT);
+  }
+}
+
+void loop()
+{
+  
+  if(digitalRead(SRCLK))
+  {
+    for(int i=0;i<8;i++)
+    {
+      while(!digitalRead(SRCLK))
+      {
+        
+      }
+      binario[i]=digitalRead(SER);
+      while(digitalRead(SRCLK))
+      {
+        
+      }
+    }
+    
+    delay(TIEMPO);
+    for(int i=7;i>=0;i--)
+    {
+      Serial.print(binario[i]);
+    }
+    Serial.println();
+    Serial.println(bintodec(binario));
+    
+    if(digitalRead(CLAVE))
+    {
+      contar=true;
+      Serial.println("se leyo la clave");
+    }
+    
+   	if(contar)
+    {
+      posicion++;
+      Serial.print("posicion= ");
+      Serial.println(posicion);
+    }
+    if(posicion==3)
+    {
+      Serial.println("hola");
+      contar=false;
+      posicion=-1;
+    }
+  }
+}
+//--------------------------------------------------------------
+//funciones
+byte bintodec(byte * bin){ // recibe un binario y retorna un decimal en tipo entero
+    byte dec = 0;
+    for(int i=7; i>=0 ; i--){
+        if (bin[i]>=1){
+                dec = dec + (dos_exp(i));
+        }
+    }
+    return dec;
+}
+
+byte dos_exp (int exp){
+    int acu = 1;
+    for (int i=0 ; i<exp ; i++){
+        acu = acu*2;
+    }
+    return acu;
+}
+\end{lstlisting}
+
+Código receptor lcd:
+\begin{lstlisting}[style=myArduino]
+// include the library code:
+#include <LiquidCrystal.h>
+
+// initialize the library with the numbers of the interface pins
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+#define SER 7
+#define RCLK 8
+#define SRCLK 9
+#define CLAVE 10
+#define TIEMPO 1000
+
+byte bintodec(byte * bin);
+byte binario[8];
+
+byte dos_exp (int exp);
+
+bool contar=false;
+int posicion=-1;
+
+void setup() {
+  // set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+  
+  for(int i=7;i<11;i++)
+  {
+    pinMode(i, INPUT);
+  }
+}
+
+void loop() {
+  
+  if(digitalRead(SRCLK))
+  {
+    for(int i=0;i<8;i++)
+    {
+      while(!digitalRead(SRCLK))
+      {
+        
+      }
+      //Serial.print(digitalRead(2));
+      binario[i]=digitalRead(SER);
+      while(digitalRead(SRCLK))
+      {
+        
+      }
+    }
+    delay(TIEMPO);
+    lcd.clear();
+    for(int i=7;i>=0;i--)
+    {
+      lcd.print(binario[i]);
+    }
+    lcd.setCursor(0, 1);
+    lcd.print(bintodec(binario));
+    
+	if(digitalRead(CLAVE))
+    {
+      contar=true;
+      lcd.print("se leyo la clave");
+    }
+    
+   	if(contar)
+    {
+      posicion++;
+      lcd.print("posicion= ");
+      lcd.print(posicion);
+    }
+    if(posicion==3)
+    {
+      lcd.print("hola");
+      contar=false;
+      posicion=-1;
+    }
+
+  }
+  
+}
+
+
+//funciones
+byte bintodec(byte * bin){ // recibe un binario y retorna un decimal en tipo entero
+    byte dec = 0;
+    for(int i=7; i>=0 ; i--){
+        if (bin[i]>=1){
+                dec = dec + (dos_exp(i));
+        }
+    }
+    return dec;
+}
+
+byte dos_exp (int exp){
+    int acu = 1;
+    for (int i=0 ; i<exp ; i++){
+        acu = acu*2;
+    }
+    return acu;
+} 
+\end{lstlisting}
+\newline el sistema se comportó tal como se esperaba tanto en el monitor serial como en el display lcd
+
+
+\subsection{Implementación sistema completo con salida en display LCD(SISTEMA FINALIZADO)}\label{intento1}
+Ya que el montaje del display funcionó correctamente, se procedió a eliminar el arduino encargado del monitor serial. Y para que el proyecto tenga un mejor acabado, se procedió a segmentar el código, y comentarlo de una forma más estructurada, a su vez, eliminando todo lo no necesario para el funcionamiento correcto del sistema:
+
+montaje:
+\begin{figure}[h]
+\includegraphics[scale=0.5]{integracion arduinos lcd.png}
+\centering
+\caption{Integración del bloque de desencriptación, mostrando la información mediante el display lcd.}
+\label{fig:lcd}
+\end{figure}
+
+Código emisor:
+\begin{lstlisting}[style=myArduino]
+//DIRECTIVAS DE PREPROCESAMIENTO
+
+#define TIEMPO 500
+#define SER 2
+#define RCLK 3
+#define SRCLK 4
+#define TAMANO 60
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+//ARREGLOS DE PRUEBA (descomente uno solo a la vez):
+
+byte codigo[]={15,15,255,0,15,15,7,8,15,9,2,15};
+//byte codigo[]={1,2,255,0,15,6,7,8};
+
+//En caso de querer crear un arreglo mediante un ciclo for:
+//byte codigo[TAMANO];
+//1.Cambie el tamano del arreglo en la directiva de
+//preprocesamiento llamada TAMANO en la linea: 7.
+//2.Quite los comentarios del for ubicado en la linea: 45
+//y modifique como funcionará este para llenar el arreglo.
+
+//¿Por qué el tipo byte?
+//A byte stores an 8-bit unsigned number, from 0 to 255.
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+//VARIABLES:
+
+int tamanoArray=sizeof(codigo)/sizeof(byte);
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+//setup
+
+void setup()
+{
+  //configuramos los puertos de salida y los inicializamos en 0
+  for(int i=2;i<5;i++)
+  {
+    pinMode(i, OUTPUT);
+    digitalWrite(i, LOW);
+  }
+  
+  //ARREGLO MODIFICABLE:
+  /*for(int i=0;i<TAMANO;i++)
+  {
+    if(i<=30)
+    {
+      codigo[i]=i+14;
+    }
+    else if(i>32)
+    {
+      codigo[i]=i+100;
+    }
+    else
+    {
+      codigo[i]=15;
+    }
+  }*/
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+//loop
+
+void loop()
+{
+  //recorremos cada elemento
+  for(int i=0;i<tamanoArray;i++)
+  {
+    //obtenemos los 8 bits
+    for(int j=0;j<8;j++)
+    {
+      digitalWrite(SER, bitRead(codigo[i], j));//j=0 menos signi
+      digitalWrite(SRCLK, HIGH);
+      delay(100);
+      digitalWrite(SRCLK, LOW);
+    }
+    delay(TIEMPO);
+    digitalWrite(RCLK, HIGH);
+    digitalWrite(RCLK, LOW); 
+  } 
+}
+\end{lstlisting}
+
+Código receptor:
+\begin{lstlisting}[style=myArduino]
+//LIBRERIAS Y SU INICIALIZACION:
+
+#include <LiquidCrystal.h>
+// initialize the library with the numbers of the interface pins
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+//DIRECTIVAS DE PREPROCESAMIENTO:
+
+#define SER 7
+#define RCLK 8
+#define SRCLK 9
+#define CLAVE 10
+#define TIEMPO 500
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+//PROTOTIPO DE LAS FUNCIONES:
+
+byte bintodec(byte * bin);
+byte dos_exp (int exp);
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+//VARIABLES Y ARREGLOS:
+
+bool contar=false;
+int posicion=0;
+byte binario[8];
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+//setup
+
+void setup() 
+{
+  // set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+  //configuramos los puertos de entrada
+  for(int i=7;i<11;i++)
+  {
+    pinMode(i, INPUT);
+  }
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+//loop
+
+void loop() 
+{
+  //si se envia un digito
+  if(digitalRead(SRCLK))
+  {
+    //verifica si se recibe la clave
+    if(digitalRead(CLAVE))
+    {
+      contar=true;
+    }
+    //guarda los 8 bits recibidos
+    for(int i=0;i<8;i++)
+    {
+      while(!digitalRead(SRCLK))
+      {
+        
+      }
+      binario[i]=digitalRead(SER);
+      while(digitalRead(SRCLK))
+      {
+        
+      }
+    }
+    delay(TIEMPO);
+ 	//si recibio la clave, comienza a contar
+   	if(contar)
+    {
+      posicion++;
+    }
+    //si van 15 posiciones luego de recibir la clave
+    if(posicion==15)
+    {
+      lcd.clear();
+      lcd.print(bintodec(binario));//muestra el numero secreto
+      //lcd.print("-");
+      contar=false;
+      posicion=0;
+    }
+  }
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+//FUNCIONES:
+
+// recibe un binario y retorna un decimal en tipo entero
+byte bintodec(byte * bin){ 
+    byte dec = 0;
+    for(int i=7; i>=0 ; i--){
+        if (bin[i]>=1){
+                dec = dec + (dos_exp(i));
+        }
+    }
+    return dec;
+}
+
+byte dos_exp (int exp){
+    int acu = 1;
+    for (int i=0 ; i<exp ; i++){
+        acu = acu*2;
+    }
+    return acu;
+} 
+\end{lstlisting}
+
+\newline El sistema completo funciona correctamente :)
+\newline link: \url{https://www.tinkercad.com/things/6DJhzwBksef}
 
 \newpage
 \section{Cibergrafía} \label{ciber}
