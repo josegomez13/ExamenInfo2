@@ -75,6 +75,8 @@ textheight=23cm
 
 \tableofcontents\newpage
 
+\section{Introducción.}\label{intro}
+En el siguiente informe se verán los pasos realizados para la solución de un problema en específico, este problema es la desencriptación de un mensaje. El mensaje encriptado llegará en forma de arreglo y, mediante una clave, el programa identificará el mensaje real. Para la solución del problema se investigó el uso del integrado 74HC595, el cual nos permitirá paralelizar los datos que llegarán desde el arduino emisor, y de esta forma minimizar el uso de puertos seriales en el arduino receptor, además de permitirnos comprobar la llegada de la clave por medio del llamado "Bloque de desencriptacion", el cual está implementado con compuertas lógicas. El arduino receptor será el encargado de mostrar por medio de una pantalla LCD el mensaje desencriptado.
 
 \section{Integrado 74HC595.} \label{Integrado}
 El integrago 74HC595 hace parte de la familia de dispositivos SNx4HC59, la cual contienen un registro de desplazamiento de 8 bits de entrada en serie y salida en paralelo, el registro de almacenamiento tiene salidas de 3 estados paralelos. Se proporcionan relojes separados para el registro de desplazamiento y el de almacenamiento. El registro de desplazamiento tiene una entrada de anulación directa (SRCLR), una entrada en serie (SER) y salidas en serie para la conexión en cascada. Tienen una amplia corriente de funcionamiento de 2 V a 6 V, y las salidas de 3 estados de alta corriente pueden controlar hasta 15 cargas LSTTL. Los dispositivos tienen un bajo consumo consumo de 80-uA (máximo) ICC.
@@ -94,24 +96,34 @@ El integrago 74HC595 hace parte de la familia de dispositivos SNx4HC59, la cual 
 \label{fig:int74HC959}
 \end{figure}
 
-\textbf{Configuración de pines.}
-\newline
-\begin{itemize}
-\item Los pines de $Q_B$(pin 1) a $Q_H$(pin 7), añadiendo $Q_A$(pin 15) representan las salidas del integrado.
-\item $V_C_C$(pin 16) es la alimentación y GND(pin 8) se conecta a tierra.
-\item $Q_H$ (pin 9) se utiliza para conectar otro integrado 74HC595 y generar un efecto de cascada.
-\item El pin 14 o SER es el pin donde se envían los datos.
-\item $\Bar{OE}$(pin 13) llamado Output Enable, habilita las salidas y se activa con un nivel bajo, por lo cual, para que siempre esté activo se conecta a GND.
-\item El RCLK (pin 12) es el reloj del registro de almacenamiento y se utiliza para actualizar los datos a los pines de salida.
-\item El SRCLK (pin 11) es el reloj que sincroniza la carga de datos.
-\item El $\Bar{SRCLR}$ (pin 11) llamado Shift Register Clear, reestablece el registro de desplazamiento.
+\begin{figure}[h]
+\includegraphics[scale=0.5]{circuitoconexion.png}
+\centering
+\caption{Circuito de conexión esquemático 74HC595.}
+\label{fig:Circuito de conexión esquemético}
+\end{figure}
 
-
-\end{itemize}
+\begin{table}
+\centering
+\begin{tabular}{lll}
+\textbf{Número pin} & \textbf{Nombre del pin}       & \textbf{Descripción}                                              \\
+1,2,3,4,5,6,7       & Pines de salida (de Q1 a Q7)  & Salidas del integrado  \\
+8                   & GND                        & Tierra                                                \\
+9                   & (P7) Salida en serie          & Conexion de más de un 74hc595 en cascada                          \\
+10                  & (MR) Restablecimiento maestro & Restablece todas las salidas como bajas.                          \\
+11                  & (SH\_CP) Reloj                & Reloj que sincroniza la carga de datos.                                          \\
+12                  & (ST\_CP) Pestillo             & Se utiliza para actualizar los datos a los pines de salida.        \\
+13                  & (OE) Activación de salida     & Se utiliza para desactivar las salidas.                           \\
+14                  & (DS) Datos en serie           & Este es el pin al que se envían los datos                          \\
+15                  & (P0) salida                   & El primer pasador de salida.                                      \\
+16                  & Vcc                           & Este pin alimenta el IC                                          
+\end{tabular}
+\end{table}
 
 \subsection{Funcionamiento.}\label{integrado funcionamiento}
 El objetivo principal es pasar el número dado de un formato serial a uno parelelo. Para explicar el funcionamiento del integrado tomaremos un número cualquiera de 8 bits, este número se irá guardando bit por bit en cada uno de los cuadros que se pueden ver en la Figura \ref{fig:func1}, también podemos ver en esta misma figura que la entrada de los datos es en serie (uno por uno), y la salida de ellos es en paralelo (8 bits).
 
+\newpage
 
 \begin{figure}[h]
 \includegraphics[scale=0.8]{funcionamiento1.png}
@@ -133,7 +145,7 @@ El primer paso para transformar la información que se encuentra en serie a para
 
 En el próximo pulso del reloj el MSB, ya dentro del integrado, se correrá una posición a la derecha en el registro de desplazamiento, mientras que el número a la derecha del MSB, en la entrada, se posicionará en la primera posición del registro de desplazamiento.
 
-\newpage
+
 \begin{figure}[h]
 \includegraphics[scale=0.8]{MSB1.png}
 \centering
@@ -150,6 +162,7 @@ Este proceso se repetirá hasta que se ingrese al registro de desplazamiento el 
 \label{fig:bitsdespla}
 \end{figure}
 
+\newpage
 \begin{figure}[h]
 \includegraphics[scale=0.8]{registrolleno.png}
 \centering
@@ -159,9 +172,8 @@ Este proceso se repetirá hasta que se ingrese al registro de desplazamiento el 
 
 Para que las salidas no vayan cambiando mientras que el registro de desplazamiento se llena, el integrado hace uso del registro de almacenamiento y el RCLK (Rejol del registro de almacenamiento). Figura \ref{fig:registroalmacenamiento}
 
-\newpage
 \begin{figure}[h]
-\includegraphics[scale=0.8]{regisalmacen.png}
+\includegraphics[scale=0.6]{regisalmacen.png}
 \centering
 \caption{Representación del registro de almacenamiento.}
 \label{fig:registroalmacenamiento}
@@ -169,6 +181,7 @@ Para que las salidas no vayan cambiando mientras que el registro de desplazamien
 
 Una vez se finalice la carga de datos en el registro de desplazamiento, con un único pulso del RCLK se cargan todos los datos del registro de desplazamiento al registro de almacenamiento y se muestran en la salida. De esta forma se alcanzará el objetivo principal, transformar los datos de entrada en serie a datos de salida paralelos.
 
+\newpage
 \begin{figure}[h]
 \includegraphics[scale=0.8]{salida.png}
 \centering
@@ -185,34 +198,26 @@ Una vez se finalice la carga de datos en el registro de desplazamiento, con un �
 \item Servers
 \end{itemize}
 
+\newpage
 \subsection{Uso del Circuito Integrado 74HC595.}\label{Usocircuito}
 
 \begin{itemize}
 \item Con pulsadores: 
 
 \begin{figure}[h]
-\includegraphics[scale=0.8]{pulsadores.png}
+\includegraphics[scale=0.6]{pulsadores.png}
 \centering
 \caption{Circuito con integrado 74HC595 haciendo uso de pulsadores.}
 \label{fig:pulsadores}
 \end{figure}
 
-La simulación se puede probar utilizando el siguiente link: https://www.tinkercad.com/things/iBjAIisXge3
-
 El montaje del circuito utilizando el 74HC595 realizado con pulsadores utiliza los conceptos vistos en la sección en donde se explica el funcionamiento del integrado. 
 Se utiliza un interruptor deslizante para la entrada serial (SER), y dos pulsadores o switches que harán el trabajo de los relojes (SRCLK y RCLK). Si el interruptor deslizante está posicionado a la izquierda significa que entra un cero, si está posicionado a la derecha, es un uno. 
 Para realizar la entrada de los datos al integrado, se desliza el interruptor SER hacia el lado del dato que necesito ingresar, después de esto se hace la activación del reloj del registro de desplazamiento (SRCLK) oprimiendo el switch con este nombre una vez, de esta forma se subirá el primer dato. Para el segundo dato se realizá el mismo procedimiento: se desliza el interruptor con el nombre SER hacia el lado del dato que requiere ingresar (izquierda cero, derecha uno) y posterior a esto se oprime una vez el interruptor llamado SRCLK. Este proceso se realiza hasta que ingrese los ocho datos que puede almacenar el integrado 74HC595, cuando termine de ingresar los datos se procede a oprimir el interruptor llamado RCLK, el cuál mandará los datos almacenados en el integrado hacia las salidas, por lo que el número ingresado se verá reflejado en los LEDs incluidos en el circuito.
 
-
-\begin{figure}[h]
-\includegraphics[scale=0.5]{circuitoconexion.png}
-\centering
-\caption{Circuito de conexión esquemático 74HC595.}
-\label{fig:Circuito de conexión esquemético}
-\end{figure}
+La simulación se puede probar utilizando el siguiente link: \url{https://www.tinkercad.com/things/iBjAIisXge3}
 
 \item Con arduino: 
-
 
 Se define el uso de dos arduinos, montados con sus respectivas placa base, arduino emisor el cual será el encargado de transmitir la información y arduino receptor quien nos indicará al momento de recibir la información desencriptada. El uso de la función "bintodec" la cual esta incluida en el codigo, fue clave, ya que nos permite convertir un binario a un decimal y de esta forma será la manera en la que transmitiremos los datos entre los arduinos.\newline
 En el integrado se tiene un registro de 8 bits de dezplazamiento por cada salida, toma una entrada en serie a través de un solo pin y lo convierte en salida paralela de 8 bits reduciendo así eficazmente el número de pines de interfaz entre un Microcontrolador y sus dispositivosde salida
@@ -220,26 +225,6 @@ En el registro de desplazamiento tenemos una entrada en serie y datos en paralel
 ingreso de los datos en serie SER, reloj (SRCLK).\newline
 Los tres pines del registro de turnos que se necesitan para conectarse a Arduino son los pines 11 (la entrada del reloj), 12 (la entrada del reloj del registro de almacenamiento o simplemente la entrada del pestillo) y 14 (laentradade datos).
 
-
-
-\begin{table}
-\centering
-\begin{tabular}{lll}
-\textbf{Número pin} & \textbf{Nombre del pin}       & \textbf{Descripción}                                              \\
-1,2,3,4,5,6,7       & Pines de salida (de Q1 a Q7)  & El 74hc595 tiene 8 pines de salida. Se pueden controlar en serie  \\
-8                   & tierra                        & Conectado a tierra                                                \\
-9                   & (P7) Salida en serie          & Conexion de más de un 74hc595 en cascada                          \\
-10                  & (MR) Restablecimiento maestro & Restablece todas las salidas como bajas.                          \\
-11                  & (SH\_CP) Reloj                & Éste es el pin del reloj                                          \\
-12                  & (ST\_CP) Pestillo             & Se utiliza para actualizar los datos a los pinesde salida.        \\
-13                  & (OE) Activación de salida     & Se utiliza para desactivar las salidas.                           \\
-14                  & (DS) Datos en serie           & Este es el pin al que se envíanlos datos                          \\
-15                  & (P0) salida                   & El primer pasador de salida.                                      \\
-16                  & Vcc                           & Este pin alimenta el IC                                          
-\end{tabular}
-\end{table}
-
-\newline
 
  A continuación se presenta primeramente el montaje del uso del circuito integrado 74HC595 con pulsadores, pero esta vez reemplazando estos últimos con un arduino, para probar así el proceso de emisión del arduino y de recepción del integrado en conjunto.
 
@@ -639,7 +624,7 @@ void loop()
 \subsubsection{Conexión entre arduinos usando puertos digitales.}\label{intento4}
 Tras varias horas de prueba se consigue una comunicación exitosa entre ambos arduinos, no solo mostrando los números en formato binario, sino también en décimal. (el montaje es el mismo del intento número 3).
 
-Código:
+Código emisor:
 \begin{lstlisting}[style=myArduino]
 //directivas de preprocesamiento
 #define tiempo 1000
@@ -690,7 +675,7 @@ void loop()
 //cuerpo de las funciones
 \end{lstlisting}
 
-Código:
+Código receptor:
 \begin{lstlisting}[style=myArduino]
 #define SER 2
 #define RCLK 3
@@ -777,6 +762,7 @@ Montaje:
 \label{fig:reemplazo pulsador por arduino}
 \end{figure}
 
+\newpage
 Código emisor:
 \begin{lstlisting}[style=myArduino]
 //directivas de preprocesamiento
@@ -910,6 +896,7 @@ byte dos_exp (int exp){
 
 \section{Bloque de desencriptación.} \label{desencriptacion}
 La tarea principal pedida en este proyecto es la desencriptación de cierta información en forma de arreglo que va a llegar para ser procesada, este proceso de desencriptación se quiere realizar por medio de hardware para así aliviar un poco la carga del programa que realiza la recepción de los datos y la conexión entre los arduinos.
+Se hará uso de compuertas lógicas como XOR, AND y NOT, según sea el caso. La salida de este bloque de desencriptación será un uno (true) o un cero (false), lo que nos dirá si el número ingresado a las compuertas lógicas es la clave que estamos esperando. 
 
 \newpage
 \subsection{Prueba 1: Integrado 74HC08 y 74HC21}
@@ -958,7 +945,9 @@ Después del análisis anterior se procedió al montaje con las compuertas en Ti
 \end{figure}
 
 \newpage
-Las salidas de las compuertas XOR pasan a los integrados 74HC04 para ser negadas, esto por la explicación que se dio anteriormente, y luego entran a las compuertas AND
+Las salidas de las compuertas XOR pasan a los integrados 74HC04 para ser negadas, esto por la explicación que se dio anteriormente, y luego entran a las compuertas AND de cuatro entradas (74HC21) para comprobar que todas la comparaciones hayan sido verdaderas (entradas igual uno). Por último, se comprobará que las salidas del integrado 74HC21 sean verdaderas (uno), y de esta forma sabremos si el número ingresado a los integrados es la clave que estamos buscando.
+
+
 \begin{figure}[h]
 \includegraphics[scale=0.7]{desencriptacion2.png}
 \centering
@@ -966,16 +955,17 @@ Las salidas de las compuertas XOR pasan a los integrados 74HC04 para ser negadas
 \label{fig:desencriptación2}
 \end{figure}
 
+La verificación del funcionamiento de este sistema de comparación construido a partir de compuertas lógicas se realizó con dos pulsadores, un switch y una fuente de voltaje de 5v:
+
 \newpage
-Sin embargo se debía verificar su funcionamiento, y para ello se hizo uso de dos pulsadores, un switch y una fuente de voltaje de 5v:
 \begin{figure}[h]
 \includegraphics[scale=0.7]{desencriptacion pulsadores.png}
 \centering
 \caption{Montaje de desencriptación finalizado con pulsadores y fuente.}
 \label{fig:desencriptación3}
 \end{figure}
-\newline
-Afortunadamente, el circuito respondió tal como se esperaba, dando por finalizada la tarea de construir un desencriptador exitoso.
+
+Afortunadamente, el circuito respondió tal como se esperaba, dando por finalizada la tarea de construir, en este caso, un desencriptador exitoso.
 
 
 \section{Implementación sistema completo.} \label{sistema completo}
@@ -984,7 +974,7 @@ A continuación se presenta la integración del bloque de desencriptación y la 
 \subsection{Implementación sistema completo con salida en monitor serial}\label{intento1}
 Inicialmente se optó por implementarlo mostrando la salida por medio del monitor serial, para así poder confirmar su funcionamiento sin el riesgo que el error se encuentre en la conexión de los cables al lcd.
 
-\newline montaje:
+montaje:
 \begin{figure}[h]
 \includegraphics[scale=0.5]{integracion arduinos serial.png}
 \centering
@@ -1143,11 +1133,11 @@ byte dos_exp (int exp){
     return acu;
 }
 \end{lstlisting}
-
-\subsection{Implementación sistema completo con salida en monitor serial y lcd}\label{intento1}
+\newpage
+\subsection{Implementación sistema completo con salida en monitor serial y LCD}\label{intento1}
 Una vez se confirmó que no había ningún error, se procedió a implementarlo tanto en monitor serial como en el display lcd, para así poder verificar que la salida del serial coincida con la mostrada en el lcd.
 
-\newline montaje:
+montaje:
 \begin{figure}[h]
 \includegraphics[scale=0.5]{integracion arduinos serial y lcd.png}
 \centering
@@ -1408,7 +1398,8 @@ byte dos_exp (int exp){
     return acu;
 } 
 \end{lstlisting}
-\newline el sistema se comportó tal como se esperaba tanto en el monitor serial como en el display lcd
+
+El sistema se comportó tal como se esperaba tanto en el monitor serial como en el display LCD.
 
 
 \subsection{Implementación sistema completo con salida en display LCD(SISTEMA FINALIZADO)}\label{intento1}
@@ -1627,10 +1618,23 @@ byte dos_exp (int exp){
 } 
 \end{lstlisting}
 
-\newline El sistema completo funciona correctamente :)
-\newline link: \url{https://www.tinkercad.com/things/6DJhzwBksef}
+El sistema completo funciona correctamente y puede ser probado haciendo uso del siguiente link: 
 
-\newpage
+\url{https://www.tinkercad.com/things/6DJhzwBksef}
+
+
+\section{Conclusiones} \label{conclusiones}
+
+\begin{itemize}
+    \item El uso del integrado 74HC595 fue clave para la solución del problema, pues nos permitió paralelizar los datos que llegaban en serie, de esta forma se minimizó el uso de puertos digitales en el arduino receptor y se ingresó el número a desencriptar al bloque de desencriptación para ser comparado con la clave asignada.
+    \item Para lograr una conexión entre arduinos exitosa se necesitó comprender el uso del circuito integrado 74HC595, ya que la sincronización entre el arduino emisor y receptor se logró gracias al SRLCK (Reloj de registro de desplazamiento), y al RCLK (Reloj de registro de salida).
+    
+    
+    
+\end{itemize}
+
+
+
 \section{Cibergrafía} \label{ciber}
 
 https://www.electrogeekshop.com/como-funciona-el-74hc595-shift-register-y-su-interfaz-con-arduino/
