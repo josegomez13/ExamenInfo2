@@ -217,16 +217,8 @@ Para realizar la entrada de los datos al integrado, se desliza el interruptor SE
 
 La simulación se puede probar utilizando el siguiente link: \url{https://www.tinkercad.com/things/iBjAIisXge3}
 
+\newpage
 \item Con arduino: 
-
-Se define el uso de dos arduinos, montados con sus respectivas placa base, arduino emisor el cual será el encargado de transmitir la información y arduino receptor quien nos indicará al momento de recibir la información desencriptada. El uso de la función "bintodec" la cual esta incluida en el codigo, fue clave, ya que nos permite convertir un binario a un decimal y de esta forma será la manera en la que transmitiremos los datos entre los arduinos.\newline
-En el integrado se tiene un registro de 8 bits de dezplazamiento por cada salida, toma una entrada en serie a través de un solo pin y lo convierte en salida paralela de 8 bits reduciendo así eficazmente el número de pines de interfaz entre un Microcontrolador y sus dispositivosde salida
-En el registro de desplazamiento tenemos una entrada en serie y datos en paralelos (salida), con cada pulso se comienza el progreso o 
-ingreso de los datos en serie SER, reloj (SRCLK).\newline
-Los tres pines del registro de turnos que se necesitan para conectarse a Arduino son los pines 11 (la entrada del reloj), 12 (la entrada del reloj del registro de almacenamiento o simplemente la entrada del pestillo) y 14 (laentradade datos).
-
-
- A continuación se presenta primeramente el montaje del uso del circuito integrado 74HC595 con pulsadores, pero esta vez reemplazando estos últimos con un arduino, para probar así el proceso de emisión del arduino y de recepción del integrado en conjunto.
 
 \begin{figure}[h]
 \includegraphics[scale=0.4]{prueba arduino integrado.png}
@@ -234,7 +226,6 @@ Los tres pines del registro de turnos que se necesitan para conectarse a Arduino
 \caption{Circuito con integrado 74HC595 haciendo uso de un arduino.}
 \label{fig:reemplazo pulsador por arduino}
 \end{figure}
-
 
 \begin{lstlisting}[style=myArduino]
 //directivas de preprocesamiento
@@ -285,6 +276,8 @@ void loop()
 //cuerpo de las funciones
 \end{lstlisting}
 
+Como podemos ver, el montaje con arduino se realiza mediante tres pines digitales, que van conectados al SER, SRCLK y RCLK, el control de estos pines se realiza mediante código escrito con lenguaje C++.
+Definimos los nombres de los pines para que sea más sencillo utilizarlos a la hora de realizar el programa que nos controlará el circuito integrado. Con un for haremos el SETUP de todos los pines digitales como salidas. En el loop se mandará la información al SER, controlado por el pin digital 2, utilizando la función bitRead, la cual nos dará un número cualquiera en binario y así lo podremos ingresar al circuito integrado. El pin digital 4 controlará el reloj de registro de desplazamiento, el cual irá guardando bit a bit el número binario en el circuito integrado, y el pin digital 3 controlará el reloj de registro de salida, que una vez activado mandará los datos guardados en el circuito integrado a las salidas.
 
 \end{itemize}
 
@@ -969,10 +962,18 @@ Afortunadamente, el circuito respondió tal como se esperaba, dando por finaliza
 
 
 \section{Implementación sistema completo.} \label{sistema completo}
+
+Se define el uso de dos arduinos, montados con sus respectivas placa base, arduino emisor el cual será el encargado de transmitir la información y arduino receptor quien nos indicará al momento de recibir la información desencriptada. El uso de la función "bintodec" la cual esta incluida en el codigo, fue clave, ya que nos permite convertir un binario a un decimal y de esta forma será la manera en la que transmitiremos los datos entre los arduinos.\newline
+En el integrado se tiene un registro de 8 bits de dezplazamiento por cada salida, toma una entrada en serie a través de un solo pin y lo convierte en salida paralela de 8 bits reduciendo así eficazmente el número de pines de interfaz entre un Microcontrolador y sus dispositivosde salida
+En el registro de desplazamiento tenemos una entrada en serie y datos en paralelos (salida), con cada pulso se comienza el progreso o 
+ingreso de los datos en serie SER, reloj (SRCLK).\newline
+Los tres pines del registro de turnos que se necesitan para conectarse a Arduino son los pines 11 (la entrada del reloj), 12 (la entrada del reloj del registro de almacenamiento o simplemente la entrada del pestillo) y 14 (laentradade datos).
 A continuación se presenta la integración del bloque de desencriptación y la comunicación entre arduinos:
 
+\newpage
 \subsection{Implementación sistema completo con salida en monitor serial}\label{intento1}
 Inicialmente se optó por implementarlo mostrando la salida por medio del monitor serial, para así poder confirmar su funcionamiento sin el riesgo que el error se encuentre en la conexión de los cables al lcd.
+
 
 montaje:
 \begin{figure}[h]
@@ -1133,7 +1134,7 @@ byte dos_exp (int exp){
     return acu;
 }
 \end{lstlisting}
-\newpage
+
 \subsection{Implementación sistema completo con salida en monitor serial y LCD}\label{intento1}
 Una vez se confirmó que no había ningún error, se procedió a implementarlo tanto en monitor serial como en el display lcd, para así poder verificar que la salida del serial coincida con la mostrada en el lcd.
 
@@ -1401,8 +1402,8 @@ byte dos_exp (int exp){
 
 El sistema se comportó tal como se esperaba tanto en el monitor serial como en el display LCD.
 
-
-\subsection{Implementación sistema completo con salida en display LCD(SISTEMA FINALIZADO)}\label{intento1}
+\newpage
+\subsection{Implementación sistema completo con salida en display LCD (SISTEMA FINALIZADO)}\label{intento1}
 Ya que el montaje del display funcionó correctamente, se procedió a eliminar el arduino encargado del monitor serial. Y para que el proyecto tenga un mejor acabado, se procedió a segmentar el código, y comentarlo de una forma más estructurada, a su vez, eliminando todo lo no necesario para el funcionamiento correcto del sistema:
 
 montaje:
